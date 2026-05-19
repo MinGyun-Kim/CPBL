@@ -116,6 +116,33 @@ void init_db(MYSQL **conn) {
   if (mysql_query(*conn, create_clubs)) {
     fprintf(stderr, "테이블 생성 실패(clubs): %s\n", mysql_error(*conn));
   }
+
+  // 메시지 테이블 생성
+  const char *create_messages = "CREATE TABLE IF NOT EXISTS messages ("
+                                "msg_id INT AUTO_INCREMENT PRIMARY KEY, "
+                                "sender_id VARCHAR(50) NOT NULL, "
+                                "receiver_id VARCHAR(50) NOT NULL, "
+                                "title VARCHAR(100) NOT NULL, "
+                                "content VARCHAR(500) NOT NULL, "
+                                "sent_at VARCHAR(50) NOT NULL, "
+                                "is_read BOOLEAN DEFAULT FALSE, "
+                                "FOREIGN KEY (receiver_id) REFERENCES users(id))";
+  if (mysql_query(*conn, create_messages)) {
+    fprintf(stderr, "테이블 생성 실패(messages): %s\n", mysql_error(*conn));
+  }
+
+  // 동아리 가입 신청 테이블 생성
+  const char *create_join_requests = "CREATE TABLE IF NOT EXISTS join_requests ("
+                                     "request_id INT AUTO_INCREMENT PRIMARY KEY, "
+                                     "club_id INT NOT NULL, "
+                                     "user_id VARCHAR(50) NOT NULL, "
+                                     "status VARCHAR(20) DEFAULT '대기', "
+                                     "apply_date VARCHAR(50) NOT NULL, "
+                                     "FOREIGN KEY (club_id) REFERENCES clubs(club_id), "
+                                     "FOREIGN KEY (user_id) REFERENCES users(id))";
+  if (mysql_query(*conn, create_join_requests)) {
+    fprintf(stderr, "테이블 생성 실패(join_requests): %s\n", mysql_error(*conn));
+  }
 }
 
 int check_login(MYSQL *conn, const char *id, const char *pw) {
