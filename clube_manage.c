@@ -3,6 +3,7 @@
 #include <string.h>
 #include <mysql.h>
 #include "clube_manage.h"
+#include "message.h"
 
 void club_manage_menu(MYSQL *conn) {
 
@@ -104,12 +105,31 @@ void approve_club(MYSQL *conn) {
         club_id);
 
     if (mysql_query(conn, query)) {
-
         printf("승인 실패 : %s\n", mysql_error(conn));
         return;
     }
 
-    printf("동아리 승인 완료\n");
+    // 시스템 메시지 전송을 위해 리더 ID와 동아리명 가져오기
+    char fetch_query[256];
+    sprintf(fetch_query, "SELECT leader_id, club_name FROM clubs WHERE club_id = %d", club_id);
+    if (mysql_query(conn, fetch_query) == 0) {
+        MYSQL_RES *res = mysql_store_result(conn);
+        if (res && mysql_num_rows(res) > 0) {
+            MYSQL_ROW row = mysql_fetch_row(res);
+            char leader_id[50];
+            char club_name[100];
+            strcpy(leader_id, row[0]);
+            strcpy(club_name, row[1]);
+            
+            char title[100], content[500];
+            sprintf(title, "[시스템] '%s' 동아리 신청 승인", club_name);
+            sprintf(content, "축하합니다! 신청하신 '%s' 동아리가 승인되었습니다.", club_name);
+            send_system_message(conn, leader_id, title, content);
+        }
+        if (res) mysql_free_result(res);
+    }
+
+    printf("동아리 승인 완료 및 시스템 메시지 전송\n");
 }
 
 
@@ -148,12 +168,31 @@ void reject_club(MYSQL *conn) {
         club_id);
 
     if (mysql_query(conn, query)) {
-
         printf("거절 실패 : %s\n", mysql_error(conn));
         return;
     }
 
-    printf("동아리 거절 완료\n");
+    // 시스템 메시지 전송을 위해 리더 ID와 동아리명 가져오기
+    char fetch_query[256];
+    sprintf(fetch_query, "SELECT leader_id, club_name FROM clubs WHERE club_id = %d", club_id);
+    if (mysql_query(conn, fetch_query) == 0) {
+        MYSQL_RES *res = mysql_store_result(conn);
+        if (res && mysql_num_rows(res) > 0) {
+            MYSQL_ROW row = mysql_fetch_row(res);
+            char leader_id[50];
+            char club_name[100];
+            strcpy(leader_id, row[0]);
+            strcpy(club_name, row[1]);
+            
+            char title[100], content[500];
+            sprintf(title, "[시스템] '%s' 동아리 신청 거절", club_name);
+            sprintf(content, "신청하신 '%s' 동아리가 거절되었습니다. 사유: %s", club_name, reason);
+            send_system_message(conn, leader_id, title, content);
+        }
+        if (res) mysql_free_result(res);
+    }
+
+    printf("동아리 거절 완료 및 시스템 메시지 전송\n");
 }
 
 

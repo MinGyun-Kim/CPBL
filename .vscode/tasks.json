@@ -19,6 +19,7 @@
                 "main.c",
                 "Admin_Interface.c",
                 "clube_manage.c",
+                "message.c",
                 "category.c",
                 "-o",
                 "CPBL.exe",
